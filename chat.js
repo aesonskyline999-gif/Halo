@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Atur CORS agar aman diakses dari frontend
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,12 +15,15 @@ export default async function handler(req, res) {
     const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
+      return res.status(400).json({ reply: 'Pesan tidak boleh kosong.' });
     }
 
     const apiKey = process.env.AI_API_KEY;
 
-    // Request langsung ke endpoint resmi DeepSeek
+    if (!apiKey) {
+      return res.status(500).json({ reply: 'Error: API Key belum disetting di Vercel!' });
+    }
+
     const apiResponse = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
@@ -29,9 +31,9 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "deepseek-chat", // Bisa juga pakai "deepseek-coder"
+        model: "deepseek-chat",
         messages: [
-          { role: "system", content: "Kamu adalah asisten AI yang ramah, asik, dan pintar untuk aplikasi PingChatKuy." },
+          { role: "system", content: "Kamu adalah asisten AI yang ramah." },
           { role: "user", content: message }
         ],
         stream: false
@@ -41,8 +43,8 @@ export default async function handler(req, res) {
     const data = await apiResponse.json();
 
     if (!apiResponse.ok) {
-      console.error('DeepSeek API Error:', data);
-      return res.status(500).json({ reply: `Gagal dari DeepSeek: ${data.error?.message || 'Terjadi kesalahan'}` });
+      console.error('DeepSeek Error Details:', data);
+      return res.status(500).json({ reply: `Gagal dari DeepSeek: ${data.error?.message || 'Kesalahan sistem'}` });
     }
 
     const reply = data.choices?.[0]?.message?.content || "Maaf, bot tidak memberikan respons.";
@@ -50,7 +52,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply });
 
   } catch (error) {
-    console.error('Serverless Error:', error);
-    return res.status(500).json({ error: 'Terjadi kesalahan pada server.' });
+    console.error('Serverless Exception:', error);
+    return res.status(500).json({ reply: 'Terjadi kesalahan internal pada server.' });
   }
 }
