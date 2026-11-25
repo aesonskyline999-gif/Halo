@@ -1,0 +1,9 @@
+{
+  "name": "pingchatkuy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chatbot PingChatKuy dengan Vercel Serverless Function",
+  "dependencies": {
+    "groq-sdk": "^0.7.0"
+  }
+}
