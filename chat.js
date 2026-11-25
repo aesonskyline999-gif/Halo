@@ -8,11 +8,21 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ reply: 'Method not allowed' });
   }
 
   try {
-    const { message } = req.body;
+    // Pastikan req.body terbaca dengan aman (baik objek maupun string JSON)
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    }
+
+    const message = body?.message;
 
     if (!message) {
       return res.status(400).json({ reply: 'Pesan tidak boleh kosong.' });
